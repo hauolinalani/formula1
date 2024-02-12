@@ -606,40 +606,14 @@ def render_tel_line_graph(lap_1, lap_2, click_data_1, click_data_2, year, sessio
         ]
         laps_1 = laps[session_1][laps[session_1]['Driver'] == driver_1]
         laps_2 = laps[session_2][laps[session_2]['Driver'] == driver_2]
-    except Exception as err:
-        fig = plots.get_no_race_data_fig()
-        print(f"Tel view has unexpected {err=}, {type(err)=}")
-    else:
-        if (telemetry_1.shape[0] == 0) or (telemetry_2.shape[0] == 0):
-            fig = plots.get_no_race_data_fig()
-        else:
-            fastest_lap_1 = int(laps_1.loc[laps_1['LapTime'].idxmin()]['LapNumber'])
-            fastest_lap_2 = int(laps_2.loc[laps_2['LapTime'].idxmin()]['LapNumber'])
-            fig = plots.get_tel_view(year, driver_1, driver_2, session_1, session_2, lap_1, lap_2, telemetry_1,
-                                     telemetry_2, fastest_lap_1, fastest_lap_2, distance_1, distance_2)
+    except Exception as e:
+        print(f"Error selecting telemetry and laps: {e}")
+        return plots.get_blank_fig()
+
+    fig = plots.get_tel_line_graph(telemetry_1, telemetry_2, laps_1, laps_2, distance_1, distance_2)
 
     return fig
 
 
-@app.callback(
-    Output('delta-viz', 'figure'),
-    Output('tyre-strategy-viz', 'figure'),
-    Output('lap-time-viz', 'figure'),
-    Input('lap-tab-session', 'value'),
-    State('year', 'value'),
-    State('lap-data', 'data')
-)
-def render_lap_tab(session, year, laps):
-    """
-    Renders visualizations for lap tab.
-    """
-
-    laps_session = laps[session]
-    delta_fig = plots.get_delta_viz(year, laps_session)
-    tyre_fig = plots.get_tyre_strategy_viz(laps_session)
-    lap_time_fig = plots.get_lap_time_heatmap(laps_session)
-
-    return delta_fig, tyre_fig, lap_time_fig
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run_server(debug=True)
